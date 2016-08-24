@@ -1,6 +1,6 @@
-# MSRA_proposal_wifi_log
+## MSRA_proposal_wifi_log
 
-이 문제에 대한 생각
+#### 이 문제에 대한 생각
 	• 현재 이용하는 데이터셋
 		○ 코오롱 Wi-Fi 데이터셋 
 			§ feature로 쓸 만한 게 너무 없음. 어디에 Wi-Fi가 찍혔느냐랑 revisit count, dwell time, revisit period밖에 없음.
@@ -12,7 +12,7 @@
 	• Feature를 잡으면 당연히 더 나아질 텐데, model를 만드는 게 아니라 feature engineering 문제라 old한 느낌.
 
 
-금주 일정
+#### 금주 일정
 	• 월: 엑소브레인 최종 통합
 		○ 솔트룩스 서버에 RDF-Unit, B-Box 설치 및 쉘 스크립트 작성, 작동 및 데이터 확인 완료
 	• 화: MSRA 프로포절 데이터 분석 시작: 코오롱 781번 매장에 대한 크롤링
@@ -36,7 +36,7 @@
 	• 목: 추가 데이터 크롤링, stay-point을 define하고 그에 맞는 feature 생성
 	• 금:  미팅 준비
 
-추후 일정
+#### 추후 일정
 	• 8/29 - 9/2:
 		
 	• 9/5 - 9/9:
