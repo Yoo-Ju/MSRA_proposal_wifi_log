@@ -15,7 +15,7 @@
 #### 금주 일정
 	• 월: 엑소브레인 최종 통합
 		○ 솔트룩스 서버에 RDF-Unit, B-Box 설치 및 쉘 스크립트 작성, 작동 및 데이터 확인 완료
-	• 화: MSRA 프로포절 데이터 분석 시작: 코오롱 781번 매장에 대한 크롤링
+	• 화: MSRA 프로포절 데이터 분석 시작: 781번 매장(커스텀멜로우 홍대점)에 대한 크롤링
 		○ Repo: https://github.com/Seondong/MSRA_proposal_wifi_log
 		○ 언어: Python + Jupyter notebook
 		○ 데이터 정보
@@ -34,10 +34,17 @@
 		○ 평가 방법 결정
 			§ Log-loss (sci-kit learn)
 	• 목: 추가 데이터 크롤링, stay-point을 define하고 그에 맞는 feature 생성
-	• 금:  미팅 준비
+	• 금: 미팅 준비
 
 #### 추후 일정
 	• 8/29 - 9/2:
 		
 	• 9/5 - 9/9:
 
+#### 참고
+	• 데이터
+		○ 781(코오롱 문정직영점), 786(커스텀멜로우 홍대점) 크롤링 후 pickle화 완료 - DataFrame으로 이용.
+		○ 일단 내 맥북에만 저장, 깃헙엔 공유 안함.
+	• 코드 예제(Jupyter Notebook)
+		○ crawler.ipynb: 데이터 크롤러
+		○ basic_analysis.ipynb: 기본 분석 (데이터 프레임 갖고 놀기)
