@@ -49,7 +49,7 @@
 			* transit patterns(temporarily annotated sequence)  -- 어려움  
 			* group movement patterns  -- 어려움 
 	* 추가 데이터 크롤링 (8월 31일까지 - 완료)
-	* 데이터 분석 결과물 result/result.json에 저장하도록 함.
+	* 데이터 분석 결과물 result/result.json에 저장하도록 함(코드 실행 시 결과 데이터 누락되거나 삭제되는 것 방지).
 
 * 9/5 - 9/9:
 
@@ -69,7 +69,7 @@
 	* final_experiment_result_analysis.ipynb: 실험 run 결과를 가지고 plot 등을 할 예정.
 * 코드 스크립트(code)
 	* revisit_predict.py: 7개의 feature를 바탕으로 xgboost - regression 모델을 돌리고, 실험 파라미터 및 결과를 저장 
-	* 디테일 다큐먼트:[링크](/code/explanation.md)
+	* 디테일 다큐먼트 : [링크](/code/explanation.md)
 * 실험 결과물(result)
 	* result.json: revisit_predict.py를 돌릴 때마다 해당 run의 파라미터 및 score 등을 업데이트.
 * Documents

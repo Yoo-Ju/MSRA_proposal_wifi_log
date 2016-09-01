@@ -1,5 +1,7 @@
 ### 연구 목적: Indoor moving patterns을 이용하여 revisit intention을 예측.
 
+
+ 
 #### 어떤 유저의 Revisit intention(Revisit count)을 예측하는 supervised learning(regression) 모델에 이용될 간단한 Feature들:
 1. User가 찍힌 로그 총 개수: num_logs
 2. 한 User가 와이파이에 잡힌 총 시간: total_dwell_time
@@ -16,14 +18,15 @@
 2. 가지고 있는 데이터셋의 revisit_count는 같은 날 두 번 방문하면 올라가지 않는다 - 유저별 max(revisit_count) > 0 이면 yes, 아니면 no로 레이블링
 3. 정확한 트레이닝은, 특정 시점 이전의 데이터를 이용하여 특정 시점 이후에 고객이 방문했는지 안 했는지 조사해야 하지만, 귀찮으므로 일단은 지금까지 전체 데이터를 가지고 revisit count를 예측하는 모델로 구성
 
+
+
 #### 데이터 
 1. 781, 786번 매장 데이터 (10%의 유저를 테스트로 이용)
 
 
 
-
-
 ---
+
 
 시간을 정보를 모조리 뭉뚱그린 하나의 feature로 아래 그림과 같은 sequence를 나타내긴 아까운데...
 ![예제](../notebook/20160830_223133_HDR.jpg)

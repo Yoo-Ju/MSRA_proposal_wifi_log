@@ -25,7 +25,7 @@ def feature_generator(df_toy):
 	df_toy_indoor2 = df_toy_indoor.loc[df_toy_indoor['dwell_time']>100]
 	f3 = df_toy_indoor2.groupby(['device_id'])['area'].count()
 
-	### F4: indoor 로그 중 dwell_time > 10인 확률
+	### F4: indoor 로그 중 dwell_time > 100인 확률
 	f3_2 = df_toy_indoor.groupby(['device_id'])['area'].count()
 	f4 = f3.div(f3_2)
 
@@ -35,24 +35,34 @@ def feature_generator(df_toy):
 	f5 = a.div(b)
 
 	### F6: dwell_time > 100인 indoor area에서 보낸 total time
-	f6 = df_toy_indoor2.groupby(['device_id'])['dwell_time'].std()
+	f6 = df_toy_indoor2.groupby(['device_id'])['dwell_time'].sum()
 
 	### F7: dwell_time > 100인 indoor area들의 variance
-	f7 = df_toy_indoor2.groupby(['device_id'])['dwell_time'].sum()
+	f7 = df_toy_indoor2.groupby(['device_id'])['dwell_time'].std()
 
+	### F8: 로그 총 개수 - 요일별
+	days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+	f8 = df_toy_indoor2.groupby(['day', 'device_id'])['dwell_time'].sum()
+	f8 = f8.reindex(days, level='day')
+	f8 = f8.to_frame(name='count').reset_index()
+    
 	### Label: Maximum revisit count from the log
 	label_toy = df_toy.groupby(['device_id'])['revisit_count'].max()
 
-	return f1, f2, f3, f4, f5, f6, f7, label_toy
+	return f1, f2, f3, f4, f5, f6, f7, f8, label_toy
 
-def df_generator(df, f1, f2, f3, f4, f5, f6, f7, label):
-	print('Generating a data frame with aggregated features')
+def df_generator(df, f1, f2, f3, f4, f5, f6, f7, f8, label):
+	print('Generating a data frame which aggergated features')
+
+	days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+	days_numlogs = ['num_logs_' + s for s in days]
 	columns = ['num_logs', 'total_dwell_time', 'num_sp_100', 'prob_dwell_10', 'prob_deny', 'time_sp_100', 'std_sp_100']
-	
+	columns = columns + days_numlogs
+
 	# feature들과의 index의 통일을 위해 np.sort를 이용.
 	device_ids = np.sort(df['device_id'].unique())       
 	df2 = pd.DataFrame(columns=columns, index=device_ids)
-	
+
 	# feature를 df에 삽입
 	df2["num_logs"] = f1          
 	df2["total_dwell_time"] = f2
@@ -61,10 +71,17 @@ def df_generator(df, f1, f2, f3, f4, f5, f6, f7, label):
 	df2["prob_deny"] = f5
 	df2["time_sp_100"] = f6
 	df2["std_sp_100"] = f7
-	
+
+	### F8를 df에 합치는 부분
+	for day in days:
+	    f8_certain_day = f8.loc[f8['day']==day]
+	    f8_certain_day = f8_certain_day[["device_id", "count"]].set_index(['device_id'])
+	    columnName = 'num_logs'+day
+	    df2[columnName] = f8_certain_day
+
 	# label을 df에 합침
 	df2 = pd.concat([df2, label], axis=1)   
-	
+
 	# machine learning에 바로 이용될 dataframe을 리턴
 	return df2
 
@@ -173,16 +190,33 @@ datadir = "../data/781/781.p"
 
 df = pd.read_pickle(datadir)
 
-f1, f2, f3, f4 ,f5, f6, f7, label = feature_generator(df)
-df2 = df_generator(df, f1, f2, f3, f4, f5, f6, f7, label)
+remainder = (df['ts']%604800000)/1000
+
+def timestamp_to_day(x):
+	a = x / 86400
+	switcher = {
+	    0: "Thu",
+	    1: "Fri",
+	    2: "Sat",
+	    3: "Sun",
+	    4: "Mon",
+	    5: "Tue",
+	    6: "Wed"
+	}
+	return switcher.get(int(a))
+
+
+df['day'] = remainder.apply(lambda x: timestamp_to_day(x))
+
+f1, f2, f3, f4 ,f5, f6, f7, f8, label = feature_generator(df)
+df2 = df_generator(df, f1, f2, f3, f4, f5, f6, f7, f8, label)
 df2 = df2.fillna(0)
 df2 = df2.reindex(np.random.permutation(df2.index))
 
 idx = int(len(df2.index)*9/10)
 train = df2[:idx]
 test = df2[idx:]
-features = ['num_logs', 'total_dwell_time', 'num_sp_100', 'prob_dwell_10',
-	   'prob_deny', 'time_sp_100', 'std_sp_100']
+features = list(df2.columns)[:-1]
 target = 'revisit_count'
 
 print('Length of train: ', len(train))
