@@ -10,10 +10,7 @@ import time
 import shutil
 from sklearn.metrics import log_loss
 from sklearn.metrics import mean_squared_error
-
-random.seed(2016)
-
-df = pd.read_pickle("../data/781/781.p")
+import json
 
 def feature_generator(df_toy):
 	print('Generating features from raw data')
@@ -49,7 +46,7 @@ def feature_generator(df_toy):
 	return f1, f2, f3, f4, f5, f6, f7, label_toy
 
 def df_generator(df, f1, f2, f3, f4, f5, f6, f7, label):
-	print('Generating a data frame which aggergated features')
+	print('Generating a data frame with aggregated features')
 	columns = ['num_logs', 'total_dwell_time', 'num_sp_100', 'prob_dwell_10', 'prob_deny', 'time_sp_100', 'std_sp_100']
 	
 	# feature들과의 index의 통일을 위해 np.sort를 이용.
@@ -73,28 +70,32 @@ def df_generator(df, f1, f2, f3, f4, f5, f6, f7, label):
 
 
 def run_xgb(train, test, features, target, random_state=0):
+	start_time = time.time()
+	objective = "reg:linear"
+	booster = "gbtree"
+	eval_metric = "rmse"
 	eta = 0.1
 	max_depth = 3
 	subsample = 0.7
 	colsample_bytree = 0.7
-	start_time = time.time()
+	silent = 1
 
 	print('XGBoost params. ETA: {}, MAX_DEPTH: {}, SUBSAMPLE: {}, COLSAMPLE_BY_TREE: {}'.format(eta, max_depth, subsample, colsample_bytree))
 	params = {
-		"objective": "reg:linear",
+		"objective": objective,
 #         "num_class": 2,
-		"booster" : "gbtree",
-		"eval_metric": "rmse",
+		"booster" : booster,
+		"eval_metric": eval_metric,
 		"eta": eta,
 		"max_depth": max_depth,
 		"subsample": subsample,
 		"colsample_bytree": colsample_bytree,
-		"silent": 1,
+		"silent": silent,
 		"seed": random_state,
 	}
-	num_boost_round = 500
-	early_stopping_rounds = 100
-	test_size = 0.3
+	num_boost_round = 200
+	early_stopping_rounds = 20
+	test_size = 0.2
 
 	X_train, X_valid = train_test_split(train, test_size=test_size, random_state=random_state)
 	print('Length train:', len(X_train.index))
@@ -115,13 +116,62 @@ def run_xgb(train, test, features, target, random_state=0):
 	print("Predict test set...")
 	test_prediction = gbm.predict(xgb.DMatrix(test[features]), ntree_limit=gbm.best_iteration)
 
-	print('Training time: {} minutes'.format(round((time.time() - start_time)/60, 2)))
-	return test_prediction.tolist(), score
+	training_time = round((time.time() - start_time)/60, 2)
+	print('Training time: {} minutes'.format(training_time))
+
+	print(gbm)
+    
+    # To save logs
+	explog = {}
+	explog['features'] = features
+	explog['target'] = target
+	explog['params'] = {}
+	explog['params']['objective'] = objective
+	explog['params']['booster'] = booster
+	explog['params']['eval_metric'] = eval_metric
+	explog['params']['eta'] = eta
+	explog['params']['max_depth'] = max_depth
+	explog['params']['subsample'] = subsample
+	explog['params']['colsample_bytree'] = colsample_bytree
+	explog['params']['silent'] = silent
+	explog['params']['seed'] = random_state
+	explog['params']['num_boost_round'] = num_boost_round
+	explog['params']['early_stopping_rounds'] = early_stopping_rounds
+	explog['params']['test_size'] = test_size
+	explog['length_train']= len(X_train.index)
+	explog['length_valid']= len(X_valid.index)
+	# explog['gbm_best_iteration']= 
+	explog['score'] = score
+	explog['training_time'] = training_time
+
+
+	
+    
+	return test_prediction.tolist(), score, explog
+
+
+def updateLog(explog, logPath):
+	try:
+	    with open(logPath, 'r') as f:
+	        obob = json.load(f)
+	    f.close()
+	except:
+	    obob = []
+
+	    
+	obob.append(explog)
+
+	with open(logPath, 'w') as f:
+	    json.dump(obob, f)
+	f.close()
 
 
 
 
+random.seed(2016)
+datadir = "../data/781/781.p"
 
+df = pd.read_pickle(datadir)
 
 f1, f2, f3, f4 ,f5, f6, f7, label = feature_generator(df)
 df2 = df_generator(df, f1, f2, f3, f4, f5, f6, f7, label)
@@ -139,8 +189,15 @@ print('Length of train: ', len(train))
 print('Length of test: ', len(test))
 print('Features [{}]: {}'.format(len(features), sorted(features)))
 
-test_prediction, score = run_xgb(train, test, features, target)
+test_prediction, score, explog = run_xgb(train, test, features, target)
 print('Score: ', score)
+
+logPath = '../result/results.json'
+
+explog['dataset']= datadir
+explog['ts']= time.strftime('%Y-%m-%d %H:%M:%S')
+
+updateLog(explog, logPath)
 
 
 
