@@ -1,15 +1,15 @@
 ## MSRA_proposal_wifi_log
 
 #### 이 문제에 대한 생각
-	• 현재 이용하는 데이터셋
-		○ 코오롱 Wi-Fi 데이터셋 
-			§ feature로 쓸 만한 게 너무 없음. 어디에 Wi-Fi가 찍혔느냐랑 revisit count, dwell time, revisit period밖에 없음.
-			§ 교수님이 생각하는 문제에 필요한 feature를 갖고 있긴 함.
-	• 기타 데이터셋
-		○ 스마트 워치 데이터셋 (2시에 이의진 교수님과 미팅하기로 함)
-		○ 민수형이 알려줬던 데이터셋
-		○ Kaggle data (이건 목적이 revisit intention이 아님 - movement pattern등을 비롯한 로그(사용 앱, 앱 카테고리, 위도 경도, 폰 기종)를 이용하여 남/녀, 나이대 category를 맞추는 게 문제)
-	• Feature를 잡으면 당연히 더 나아질 텐데, model를 만드는 게 아니라 feature engineering 문제라 old한 느낌.
+	* 현재 이용하는 데이터셋
+		* 코오롱 Wi-Fi 데이터셋 
+			* feature로 쓸 만한 게 너무 없음. 어디에 Wi-Fi가 찍혔느냐랑 revisit count, dwell time, revisit period밖에 없음.
+			* 교수님이 생각하는 문제에 필요한 feature를 갖고 있긴 함.
+	* 기타 데이터셋
+		* 스마트 워치 데이터셋 (2시에 이의진 교수님과 미팅하기로 함)
+		* 민수형이 알려줬던 데이터셋
+		* Kaggle data (이건 목적이 revisit intention이 아님 - movement pattern등을 비롯한 로그(사용 앱, 앱 카테고리, 위도 경도, 폰 기종)를 이용하여 남/녀, 나이대 category를 맞추는 게 문제)
+	* Feature를 잡으면 당연히 더 나아질 텐데, model를 만드는 게 아니라 feature engineering 문제라 old한 느낌.
 
 
 #### 일정
