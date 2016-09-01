@@ -1,6 +1,6 @@
 ## MSRA_proposal_wifi_log
 
-#### 이 문제에 대한 생각
+### 이 문제에 대한 생각
 * 현재 이용하는 데이터셋
 	* 코오롱 Wi-Fi 데이터셋 
 		* feature로 쓸 만한 게 너무 없음. 어디에 Wi-Fi가 찍혔느냐랑 revisit count, dwell time, revisit period밖에 없음.
@@ -12,7 +12,7 @@
 * Feature를 잡으면 당연히 더 나아질 텐데, model를 만드는 게 아니라 feature engineering 문제라 old한 느낌.
 
 
-#### 일정
+### 일정
 * 월: 엑소브레인 최종 통합
 	* 솔트룩스 서버에 RDF-Unit, B-Box 설치 및 쉘 스크립트 작성, 작동 및 데이터 확인 완료
 * 화: MSRA 프로포절 데이터 분석 시작: 781번 매장(커스텀멜로우 홍대점)에 대한 크롤링
@@ -57,7 +57,7 @@
 
 
 
-#### Repository 내용 서머리
+### Repository 내용 서머리
 * 데이터
 	* 781(코오롱 문정직영점), 786(커스텀멜로우 홍대점) 크롤링 후 pickle화 완료 - DataFrame으로 이용.
 	* 일단 내 맥북에만 저장, 깃헙엔 공유 안함.
@@ -73,6 +73,7 @@
 	* result.json: revisit_predict.py를 돌릴 때마다 해당 run의 파라미터 및 score 등을 업데이트.
 * Documents
 	* [documents.md 참고](/documents/documents.md)
+
 
 
 
