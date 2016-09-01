@@ -68,7 +68,8 @@
 	* group_pattern.ipynb: 로그를 바탕으로 유저의 group movement pattern을 구현하고자 함 (20%, 완전 초기 단계)
 	* final_experiment_result_analysis.ipynb: 실험 run 결과를 가지고 plot 등을 할 예정.
 * 코드 스크립트(code)
-	* revisit_predict.py: 7개의 feature를 바탕으로 xgboost - regression 모델을 돌리고, 실험 파라미터 및 결과를 저장 [설명](/code/explanation.md)
+	* revisit_predict.py: 7개의 feature를 바탕으로 xgboost - regression 모델을 돌리고, 실험 파라미터 및 결과를 저장 
+	* 디테일 다큐먼트:[링크](/code/explanation.md)
 * 실험 결과물(result)
 	* result.json: revisit_predict.py를 돌릴 때마다 해당 run의 파라미터 및 score 등을 업데이트.
 * Documents
