@@ -1,4 +1,4 @@
-__author__ = 'ZFTurbo: https://kaggle.com/zfturbo'
+__author__ = 'Sundong Kim: sundong.kim@kaist.ac.kr'
 import datetime
 import pandas as pd
 import numpy as np
@@ -15,44 +15,55 @@ import json
 def feature_generator(df_toy):
 	print('Generating features from raw data')
 	### F1: 로그 총 개수
-	f1 = df_toy.groupby(['device_id'])['ts'].count()
+	f1 = df_toy.groupby(['date_device_id'])['ts'].count()
+	#     print(f1.head(5))
 
 	### F2: 와이파이에 잡힌 총 시간
-	f2 = df_toy.groupby(['device_id'])['dwell_time'].sum()
+	f2 = df_toy.groupby(['date_device_id'])['dwell_time'].sum()
+	#     print(f2.head(5))
 
 	### F3: dwell_time > 100인 indoor area 개수
 	df_toy_indoor = df_toy.loc[df_toy['area']!='out']
 	df_toy_indoor2 = df_toy_indoor.loc[df_toy_indoor['dwell_time']>100]
-	f3 = df_toy_indoor2.groupby(['device_id'])['area'].count()
+	f3 = df_toy_indoor2.groupby(['date_device_id'])['area'].count()
+	#     print(f3.head(5))
 
 	### F4: indoor 로그 중 dwell_time > 100인 확률
-	f3_2 = df_toy_indoor.groupby(['device_id'])['area'].count()
+	f3_2 = df_toy_indoor.groupby(['date_device_id'])['area'].count()
 	f4 = f3.div(f3_2)
+	#     print(f4.head(5))
 
 	### F5: deny = True일 확률
-	a = df_toy.groupby(['device_id']).deny.count()
-	b = df_toy['device_id'].value_counts()
+	a = df_toy.groupby(['date_device_id']).deny.count()
+	b = df_toy['date_device_id'].value_counts()
 	f5 = a.div(b)
+	#     print(f5.head(5))
 
 	### F6: dwell_time > 100인 indoor area에서 보낸 total time
-	f6 = df_toy_indoor2.groupby(['device_id'])['dwell_time'].sum()
+	f6 = df_toy_indoor2.groupby(['date_device_id'])['dwell_time'].sum()
+	#     print(f6.head(5))
 
-	### F7: dwell_time > 100인 indoor area들의 variance
-	f7 = df_toy_indoor2.groupby(['device_id'])['dwell_time'].std()
+	### F7: dwell_time > 100인 indoor area들의 standard deviation
+	f7 = df_toy_indoor2.groupby(['date_device_id'])['dwell_time'].std()
+	#     print(f7.head(5))
 
 	### F8: 로그 총 개수 - 요일별
 	days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-	f8 = df_toy_indoor2.groupby(['day', 'device_id'])['dwell_time'].sum()
+	f8 = df_toy_indoor2.groupby(['day', 'date_device_id'])['dwell_time'].sum()
 	f8 = f8.reindex(days, level='day')
 	f8 = f8.to_frame(name='count').reset_index()
-    
+	#     print(f8.head(5))
+
 	### Label: Maximum revisit count from the log
-	label_toy = df_toy.groupby(['device_id'])['revisit_count'].max()
+	label_toy = df_toy.groupby(['date_device_id'])['revisit_count'].max()
+	#     print(label_toy.head(5))
 
 	return f1, f2, f3, f4, f5, f6, f7, f8, label_toy
 
+
+
 def df_generator(df, f1, f2, f3, f4, f5, f6, f7, f8, label):
-	print('Generating a data frame which aggergated features')
+	print('Generating a data frame which aggregated features')
 
 	days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 	days_numlogs = ['num_logs_' + s for s in days]
@@ -60,7 +71,7 @@ def df_generator(df, f1, f2, f3, f4, f5, f6, f7, f8, label):
 	columns = columns + days_numlogs
 
 	# feature들과의 index의 통일을 위해 np.sort를 이용.
-	device_ids = np.sort(df['device_id'].unique())       
+	device_ids = np.sort(df['date_device_id'].unique())       
 	df2 = pd.DataFrame(columns=columns, index=device_ids)
 
 	# feature를 df에 삽입
@@ -75,7 +86,7 @@ def df_generator(df, f1, f2, f3, f4, f5, f6, f7, f8, label):
 	### F8를 df에 합치는 부분
 	for day in days:
 	    f8_certain_day = f8.loc[f8['day']==day]
-	    f8_certain_day = f8_certain_day[["device_id", "count"]].set_index(['device_id'])
+	    f8_certain_day = f8_certain_day[["date_device_id", "count"]].set_index(['date_device_id'])
 	    columnName = 'num_logs'+day
 	    df2[columnName] = f8_certain_day
 
@@ -100,7 +111,7 @@ def run_xgb(train, test, features, target, random_state=0):
 	print('XGBoost params. ETA: {}, MAX_DEPTH: {}, SUBSAMPLE: {}, COLSAMPLE_BY_TREE: {}'.format(eta, max_depth, subsample, colsample_bytree))
 	params = {
 		"objective": objective,
-#         "num_class": 2,
+	#         "num_class": 2,
 		"booster" : booster,
 		"eval_metric": eval_metric,
 		"eta": eta,
@@ -137,8 +148,8 @@ def run_xgb(train, test, features, target, random_state=0):
 	print('Training time: {} minutes'.format(training_time))
 
 	print(gbm)
-    
-    # To save logs
+
+	# To save logs
 	explog = {}
 	explog['features'] = features
 	explog['target'] = target
@@ -162,8 +173,8 @@ def run_xgb(train, test, features, target, random_state=0):
 	explog['training_time'] = training_time
 
 
-	
-    
+
+
 	return test_prediction.tolist(), score, explog
 
 
@@ -183,15 +194,6 @@ def updateLog(explog, logPath):
 	f.close()
 
 
-
-
-random.seed(2016)
-datadir = "../data/781/781.p"
-
-df = pd.read_pickle(datadir)
-
-remainder = (df['ts']%604800000)/1000
-
 def timestamp_to_day(x):
 	a = x / 86400
 	switcher = {
@@ -206,10 +208,22 @@ def timestamp_to_day(x):
 	return switcher.get(int(a))
 
 
+
+random.seed(2016)
+datadir = "../data/781/781.p"
+
+df = pd.read_pickle(datadir)
+
+df['date'] = df['ts'] // 86400000
+# df = df.loc[(df['deny']!= True) & (df['dwell_time'] > 0)]
+df = df.loc[(df['dwell_time'] > 0)]
+df['date_device_id'] = df.date.map(str) + "_" + df.device_id
+remainder = (df['ts']%604800000)/1000
 df['day'] = remainder.apply(lambda x: timestamp_to_day(x))
 
 f1, f2, f3, f4 ,f5, f6, f7, f8, label = feature_generator(df)
 df2 = df_generator(df, f1, f2, f3, f4, f5, f6, f7, f8, label)
+print(df2.head(20))
 df2 = df2.fillna(0)
 df2 = df2.reindex(np.random.permutation(df2.index))
 
@@ -232,17 +246,5 @@ explog['dataset']= datadir
 explog['ts']= time.strftime('%Y-%m-%d %H:%M:%S')
 
 updateLog(explog, logPath)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
