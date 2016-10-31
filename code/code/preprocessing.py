@@ -8,7 +8,7 @@ TO DO:
 '''
 __author__ = 'Sundong Kim: sundong.kim@kaist.ac.kr'
 
-
+import timing
 import pandas as pd
 import numpy as np
 
@@ -64,13 +64,7 @@ def add_visitcount(mpframe2):
 
 
 
-
-
-
-
-
-
-
+@timing.timing
 def label_balancing(trajs_combined, revisit_interval, frequent_limit):
 	### 최근 세달 이내 revisit intention이 없는 moving pattern 제거 
 	trajs_combined = trajs_combined.set_index('date_device_id')
@@ -79,7 +73,7 @@ def label_balancing(trajs_combined, revisit_interval, frequent_limit):
 	recent3monthvisitors = trajs_combined.loc[(trajs_combined.date > limit_date) & (trajs_combined.revisit_intention == 0)].index
 	trajs_excludelast3months = trajs_combined.drop(recent3monthvisitors)
 
-	### 10번 이상 온 사람들은 제거.
+	### 10번 초 온 사람들은 제거.
 	visitcounts = trajs_excludelast3months.groupby(['device_id'])['new_visit_count'].max()
 	freqvisitors = visitcounts.loc[visitcounts > frequent_limit ].keys()
 	trajs_freqremoved = trajs_excludelast3months.loc[-trajs_excludelast3months.device_id.isin(freqvisitors.tolist())]
@@ -107,6 +101,7 @@ def finalprocessing(mpframe4):
 	df_learning = df_learning.fillna(0)
 	df_learning = df_learning.reindex(np.random.permutation(df_learning.index))
 	return df_learning
+
 
 
 

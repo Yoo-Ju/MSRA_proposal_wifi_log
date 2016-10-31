@@ -9,7 +9,7 @@ TO DO:
 '''
 __author__ = 'Sundong Kim: sundong.kim@kaist.ac.kr'
 
-
+import timing
 import pandas as pd
 import datetime
 import numpy as np
@@ -202,25 +202,30 @@ def ffzz(x, iunion):
     return ddd
 
 
+@timing.timing
 def add_indoor_temporal_movement_features(z):
-	area = ['1f','2f','3f']
-	z1 = z.loc[z.revisit_intention == 1]
-	z0 = z.loc[z.revisit_intention == 0]
+    area = ['1f','2f','3f']
+    z1 = z.loc[z.revisit_intention == 1]
+    z0 = z.loc[z.revisit_intention == 0]
 
-	iix1 = z1.apply(lambda x: statsas(x, area), axis=1)
-	iix0 = z0.apply(lambda x: statsas(x, area), axis=1)
-	i1 = iix1.apply(lambda x: str(x)).value_counts().sort_values(ascending=False).head(25).index
-	i2 = iix0.apply(lambda x: str(x)).value_counts().sort_values(ascending=False).head(25).index
-	iunion = i1.union(i2)
-	iix = z.apply(lambda x: statsas(x, area), axis=1)
+    ### revisit intention 여부에 따라, top 25개 moving pattern feature를 뽑음
+    ### statsas: 1f-long 이런식으로 area와 머무른 시간을 붙여줌.
+    iix1 = z1.apply(lambda x: statsas(x, area), axis=1)
+    iix0 = z0.apply(lambda x: statsas(x, area), axis=1)
+    i1 = iix1.apply(lambda x: str(x)).value_counts().sort_values(ascending=False).head(25).index
+    i2 = iix0.apply(lambda x: str(x)).value_counts().sort_values(ascending=False).head(25).index
+    
+    ### iunion = 재방문율=1, 0일때 각각 25개씩 뽑은 후 그것들의 합집합.
+    iunion = i1.union(i2)
+    
 
-	z['ptn'] = iix.apply(lambda x: ffzz(x, iunion))
-	one_hot = pd.get_dummies(z['ptn'])
-	del z['ptn']
-	zdf = pd.concat([z, one_hot], axis=1, join='inner')
-	return zdf
+    iix = z.apply(lambda x: statsas(x, area), axis=1)
 
-
+    z['ptn'] = iix.apply(lambda x: ffzz(x, iunion))
+    one_hot = pd.get_dummies(z['ptn'])
+    del z['ptn']
+    zdf = pd.concat([z, one_hot], axis=1, join='inner')
+    return zdf
 
 
 
