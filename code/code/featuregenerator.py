@@ -9,6 +9,7 @@ TO DO:
 '''
 __author__ = 'Sundong Kim: sundong.kim@kaist.ac.kr'
 
+import preprocessing
 import timing
 import pandas as pd
 import datetime
@@ -179,7 +180,9 @@ Indoor temporal movement features
 '''
 
 def puttogether(a, b):
-    if b < 60:
+    if b == 0:
+        c = 'zero'
+    elif b < 60:
         c = 'short'
     elif b < 600:
         c = 'medium'
@@ -187,12 +190,12 @@ def puttogether(a, b):
         c = 'long'
     return '-'.join([a,c])
 
-def statsas(x, area):
+def add_temporal_sign(x, area):  # Make features like 1f-medium, or 1f-inner-short
     idcs = [i for i, y in enumerate(x['traj']) if y in area]
     zt = [puttogether(x['traj'][index], x['dwell_time'][index]) for index in idcs] 
     return zt
 
-def ffzz(x, iunion):
+def change_to_features(x, iunion):
     sss = 1001
     ddd = 1001
     for i in iunion:
@@ -204,14 +207,14 @@ def ffzz(x, iunion):
 
 @timing.timing
 def add_indoor_temporal_movement_features(z):
-    area = ['1f','2f','3f']
+    area = preprocessing.getuniqueareas(z.traj)
     z1 = z.loc[z.revisit_intention == 1]
     z0 = z.loc[z.revisit_intention == 0]
 
     ### revisit intention 여부에 따라, top 25개 moving pattern feature를 뽑음
-    ### statsas: 1f-long 이런식으로 area와 머무른 시간을 붙여줌.
-    iix1 = z1.apply(lambda x: statsas(x, area), axis=1)
-    iix0 = z0.apply(lambda x: statsas(x, area), axis=1)
+    ### add_temporal_sign: 1f-long 이런식으로 area와 머무른 시간을 붙여줌.
+    iix1 = z1.apply(lambda x: add_temporal_sign(x, area), axis=1)
+    iix0 = z0.apply(lambda x: add_temporal_sign(x, area), axis=1)
     i1 = iix1.apply(lambda x: str(x)).value_counts().sort_values(ascending=False).head(25).index
     i2 = iix0.apply(lambda x: str(x)).value_counts().sort_values(ascending=False).head(25).index
     
@@ -219,9 +222,9 @@ def add_indoor_temporal_movement_features(z):
     iunion = i1.union(i2)
     
 
-    iix = z.apply(lambda x: statsas(x, area), axis=1)
+    iix = z.apply(lambda x: add_temporal_sign(x, area), axis=1)
 
-    z['ptn'] = iix.apply(lambda x: ffzz(x, iunion))
+    z['ptn'] = iix.apply(lambda x: change_to_features(x, iunion))
     one_hot = pd.get_dummies(z['ptn'])
     del z['ptn']
     zdf = pd.concat([z, one_hot], axis=1, join='inner')

@@ -14,6 +14,8 @@ import pandas as pd
 import numpy as np
 from scipy.special import entr
 from collections import defaultdict
+import featuregenerator
+import preprocessing
 
 
 
@@ -113,13 +115,13 @@ def leavelongest_samesupport(freq_seqs_sample):
 
 
 
-def generate_sortE(df):
+def generate_sortE(df, supportRatio):
 
 	### Extract subsequences with support greater than 200 (from 8886 for this example ~ 2.5%)
 	seqs = df.apply(lambda x: (x['traj'], x['revisit_intention']), axis=1)
 
 
-	freq_seqs = seqmining_sd.freq_seq_enum(seqs, seqs.shape[0]*0.025)   #0.025 = support ratio
+	freq_seqs = seqmining_sd.freq_seq_enum(seqs, seqs.shape[0]*supportRatio)   #0.025 = support ratio
 	
 
 
@@ -202,8 +204,18 @@ def generateIGFeatureColumns(df, seqE):
             df.set_value(row[0], seq_ig, 1) 
 
 @timing.timing
-def add_frequent_sequence_features(df, numFeatures):
-	sortE = generate_sortE(df)
+def add_frequent_sequence_features(df, supportRatio, featureRatio, temporal):
+	if temporal == True:
+		print('Generating feature: By considering dwell_time of each area')
+		area = preprocessing.getuniqueareas(df.traj)
+		# print(area)
+		df['traj'] = df.apply(lambda x: featuregenerator.add_temporal_sign(x, area), axis=1)
+	else:
+		print('Generating feature: Not considering dwell_time of each area')
+
+	sortE = generate_sortE(df, supportRatio)
+	# print(sortE[:30])
+	numFeatures = int(round(df.shape[0]*featureRatio))
 	seqE = generate_seqE(sortE, numFeatures)
 	newdf = df
 	newdf['seq_ig_ft'] = df.apply(lambda x: relatedfeatures(x['traj'], seqE), axis=1)

@@ -9,6 +9,7 @@ TO DO: try-catch statement according to input data availability
 '''
 __author__ = 'Sundong Kim: sundong.kim@kaist.ac.kr'
 
+import timing
 import pandas as pd
 import datetime
 import numpy as np
@@ -28,6 +29,7 @@ def printall(mp, i, columnss):
         print(mp[column].ix[i])
 
 
+@timing.timing
 def reindex_by_moving_pattern(df):
 
 	### read data and reindex by date and device_id
