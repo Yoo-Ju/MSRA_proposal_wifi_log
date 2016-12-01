@@ -9,7 +9,7 @@ import reindex
 import featuregenerator
 import preprocessing
 import predict
-import sequencefeaturegenerator2
+import sequencefeaturegenerator
 import pickle
 import pandas as pd
 import numpy as np
@@ -77,7 +77,7 @@ def check(mpframe3):
 		print('Label balancing has been done: ', mpframe4.shape)
 		mpframe5 = featuregenerator.add_indoor_temporal_movement_features(mpframe4)
 		print('Indoor temporal movement features has been added: ', mpframe5.shape)
-		mpframe6 = sequencefeaturegenerator2.add_frequent_sequence_features(mpframe4, 0.01, 0.02, True) 
+		mpframe6 = sequencefeaturegenerator.add_frequent_sequence_features(mpframe4, 0.01, 0.02, True) 
 		### arguments(dataframe, nfeatures, Temporal, out/in Cond, areaCond, 0secondsCond )
 		print('Frequent sequence features has been added: ', mpframe6.shape)	
 

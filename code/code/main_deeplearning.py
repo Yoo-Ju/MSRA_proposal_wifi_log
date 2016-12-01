@@ -27,6 +27,7 @@ from keras.models import Sequential
 from keras.layers import LSTM, Dense
 from sklearn.model_selection import train_test_split
 import numpy as np
+import preprocessing
 
 
 def getuniqueareas(trajseries):
@@ -140,8 +141,11 @@ if __name__ == '__main__':
 
 	placeNum = str(786)
 	# statistical_picklePath2 = "../code/data/"+placeNum+"/"+placeNum+"_mpframe3.p"
-	statistical_picklePath2 = "../../data/"+placeNum+"/"+placeNum+"_trajs_combined_balanced.p"
-	df = pd.read_pickle(statistical_picklePath2)
+	statistical_picklePath = "../data/"+placeNum+"/"+placeNum+"_mpframe3.p"
+	df = pd.read_pickle(statistical_picklePath)
+
+	df = preprocessing.label_balancing(df, 90, 10)
+	
 	df2 = df[['traj', 'ts', 'dwell_time', 'time_start', 'ts_end', 'revisit_intention']]  #  'time_end',
 	
 	areas = getuniqueareas(df2.traj)

@@ -37,7 +37,7 @@ def areaStayingAmountFeature(traj, time, areatypes):
     v = np.asarray([traj.count(area) for area in areatypes])
     return b
 
-### 그냥 각 구역별로 얼마나 오래 커넥트됐는지 feature로 나타낸 후 dataframe에 추가
+### 그냥 각 구역별로 얼마나 오래 커넥트됐는지 feature로 나타낸 후 dataframe에 추가  (NOT USED - 161130)
 def add_stayingtime_eacharea(df, mpframe):
 	areatypes = df.area.unique().tolist()
 

@@ -1,7 +1,7 @@
 '''
 Name: sequencefeaturegenerator.py
 Date: 2016-10-25
-Description: Frequent Sequence 를 찾은 후 Feature로 이용하는 모듈
+Description: Frequent Sequence 를 찾은 후 Feature로 이용하는 모듈 (faster ver)
 
 
 Input: 
@@ -9,11 +9,13 @@ TO DO:
 '''
 
 import timing
+import seqmining_sd
 import pandas as pd
-from pymining import seqmining
 import numpy as np
 from scipy.special import entr
 from collections import defaultdict
+import featuregenerator
+import preprocessing
 
 
 
@@ -90,9 +92,10 @@ def leavelongest_samesupport(freq_seqs_sample):
 
 	freq_seqs_sample2 = {}
 	for kv in freq_seqs_sample:
-	    freq_seqs_sample2.setdefault(kv[1], []).append(kv[0])
+	    freq_seqs_sample2.setdefault((kv[1], kv[2]), []).append(kv[0])
 
 	freqfreqfreq = []
+
 
 	for k, v in freq_seqs_sample2.items():
 	    if len(v) > 1:
@@ -104,59 +107,75 @@ def leavelongest_samesupport(freq_seqs_sample):
 	            freqfreqfreq.append(tuple((item, k)))
 	    else:
 	        freqfreqfreq.append(tuple((v[0], k)))
-	       
+	        
 	freqfreqfreq = sorted(freqfreqfreq, key=lambda tup: tup[1], reverse=True)
+
 	return freqfreqfreq
 
 
 
 
-@timing.timing
-def generate_sortE(df):
-	
+def generate_sortE(df, supportRatio):
+
 	### Extract subsequences with support greater than 200 (from 8886 for this example ~ 2.5%)
-	seqs = df.traj
-	freq_seqs = seqmining.freq_seq_enum(seqs, 200)
-	print('pymining package has been done')
-
-	### Sort subsequences by support
-	freq_seqs_sorted = sorted(freq_seqs, key=lambda tup: tup[1], reverse=True)
+	seqs = df.apply(lambda x: (x['traj'], x['revisit_intention']), axis=1)
 
 
-	### Minimum subsequence length == 4  (TODO: parameter)
+	freq_seqs = seqmining_sd.freq_seq_enum(seqs, seqs.shape[0]*supportRatio)   #0.025 = support ratio
+	
+
+
+	### Minimum subsequence length == 4  &  sort by support (TODO: parameter)
 	freq_seqs_sample = []
-	for x in freq_seqs_sorted:
+	for x in freq_seqs:
 	    if (len(x[0]) >= 4):
 	#         if (x[0][0] != 'out') & (x[0][0] != 'in'):
 	        freq_seqs_sample.append(x)
+	freq_seqs_sample = sorted(freq_seqs_sample, key=lambda tup: tup[1], reverse=True)   
+
 
 	### Leave longest supersequence 
 	longest_sequences_support = leavelongest_samesupport(freq_seqs_sample)
-    
 
-	### Make another list to save only sequence features without support value
-	longest_sequences = []
-	for x in longest_sequences_support:
-	    if (len(x[0]) >= 4):
-	        longest_sequences.append(x[0])
-	print('longest subsequence has been calcualated')
 
-	### Calculate information gain(IG), by adding sequence as a feature - descending order by IG   
-	### 시간이 엄청 오래 걸림!!!!!!!!!! 여기서 다시 계산하지 말고, 처음에 같이 했어야 하는데...    
+	num1 = df.revisit_intention.value_counts().loc[1]
+	num0 = df.revisit_intention.value_counts().loc[0]
+
+	### Calculate information gain easily
+	''' 
+	a = (True, 1.0) - Subsequence, Revisit intention      
+	b = (True, 0.0)       
+	c = (False, 1.0)    
+	d = (False, 0.0) 
+	'''
+	longest_sequences_support2 = []
+	for i in longest_sequences_support:
+	    z = []  
+	    a = i[1][1]  
+	    b = i[1][0] - i[1][1]
+	    c = num1 - a
+	    d = num0 - b
+	    z.append(a)
+	    z.append(b)
+	    z.append(c)
+	    z.append(d)
+	    ig = informationGain(a, b, c, d)
+	    z.append(ig)
+	    longest_sequences_support2.append((i[0], z))
+
+
 	igdict = {}
-	for traj in longest_sequences:
-	    c = df.apply(lambda x: (is_subseq(traj, x['traj']), x['revisit_intention']), axis=1)
-	    cc = c.value_counts().sort_index(ascending=False)
-	    IG = informationGain(cc[0], cc[1], cc[2], cc[3])
-	    igdict[traj] = IG
-	print('ig calculation has been done')
+
+	for traj in longest_sequences_support2:
+	    igdict[traj[0]] = traj[1]
+
+	# print('ig calculation has been done')
 
 	### SortE: Tuples list of sequences(key) and their information gain
-	sortE = sorted(igdict.items(), key=lambda value: value[1], reverse=True)
+	sortE = sorted(igdict.items(), key=lambda value: value[1][-1], reverse=True)
 	return sortE
 
 
-@timing.timing
 def generate_seqE(sortE, numFeatures):
 	seqE = []
 	for item in sortE[:numFeatures]:
@@ -184,9 +203,19 @@ def generateIGFeatureColumns(df, seqE):
         for seq_ig in row[1]['seq_ig_ft']:
             df.set_value(row[0], seq_ig, 1) 
 
+@timing.timing
+def add_frequent_sequence_features(df, supportRatio, featureRatio, temporal):
+	if temporal == True:
+		print('Generating feature: By considering dwell_time of each area')
+		area = preprocessing.getuniqueareas(df.traj)
+		# print(area)
+		df['traj'] = df.apply(lambda x: featuregenerator.add_temporal_sign(x, area), axis=1)
+	else:
+		print('Generating feature: Not considering dwell_time of each area')
 
-def add_frequent_sequence_features(df, numFeatures):
-	sortE = generate_sortE(df)
+	sortE = generate_sortE(df, supportRatio)
+	print(sortE[:30])
+	numFeatures = int(round(df.shape[0]*featureRatio))
 	seqE = generate_seqE(sortE, numFeatures)
 	newdf = df
 	newdf['seq_ig_ft'] = df.apply(lambda x: relatedfeatures(x['traj'], seqE), axis=1)
