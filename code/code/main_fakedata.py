@@ -15,7 +15,7 @@ def createRandomTrajs(length):
 	listt = []  # traj
 	listt2 = [] # time
 
-	foo = ['1f', '2f', '3f', '1f-left', '1f-inner', '1f-right', '2f-inner', '2f-left', '2f-right']
+	foo = ['1f-a','1f-b','1f-c','1f-d','1f-e','1f-f','1f-g','1f-h','1f-i','1f-j','1f-k','1f-l','1f-m','1f-n','1f-o','1f-p','1f-q','1f-r','1f-s','1f-t','1f-u','1f-v','1f-w','1f-x','1f-y','1f-z']
 	listt.append('out')
 	listt2.append(random.randrange(300))
 	listt.append('in')
@@ -36,7 +36,7 @@ def generatefakedata(size, length):
 		listt2.append(fakedata2)
 		# prob_revisit = 0.5
 		prob_revisit = (length-len(fakedata1))/(length)
-		listt3.append(np.random.choice([0, 1], p=[1-prob_revisit, prob_revisit]))    #(0,1 비율이 길이에 비례하게)
+		listt3.append(np.random.choice([0, 1], p=[prob_revisit, 1-prob_revisit]))    #(0,1 비율이 길이에 비례하게)
 	d = {'traj': listt, 'dwell_time': listt2, 'revisit_intention': listt3}
 	dfyo = pd.DataFrame(data=d, columns=['traj', 'dwell_time', 'revisit_intention'])
 	return dfyo
@@ -51,8 +51,10 @@ if __name__ == '__main__':
 		df = generatefakedata(num, length)
 		print('Generating %d random fake trajectories with average length %d' %(num, length+5))
 
-		# print (df.head(5))
-		mpframe6 = sequencefeaturegenerator.add_frequent_sequence_features(df, 0.3, 0.02, True)
+		print (df.head(5))
+		mpframe6, seqE = sequencefeaturegenerator.add_frequent_sequence_features(df, 0.08, 1, True, False, [])
+		print(type(mpframe6))
+		print(mpframe6.shape)
 		print('Number of features(frequent sequences):', mpframe6.shape[1]-3)
 		mpframe6['r_i'] = mpframe6['revisit_intention']
 		del mpframe6['revisit_intention']

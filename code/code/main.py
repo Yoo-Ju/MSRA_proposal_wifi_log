@@ -15,6 +15,11 @@ import pandas as pd
 import numpy as np
 from numpy import inf
 import timing2
+from sklearn.model_selection import KFold, StratifiedKFold
+from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
+import CompanionTrajectory
+pd.options.mode.chained_assignment = None
 
 
 placeNum = str(786)
@@ -26,6 +31,7 @@ trajpreprocessed_picklePath = "../data/"+placeNum+"/"+placeNum+"_mpframe_trajpro
 reindexed_picklePath2 = "../data/"+placeNum+"/"+placeNum+"_mpframe2.p"
 statistical_picklePath = "../data/"+placeNum+"/"+placeNum+"_mpframe3.p"
 statistical_picklePath_beforetrajpreprocess = "../data/"+placeNum+"/"+placeNum+"_mpframe3_beforetrajpreprocess.p"
+mpframe6_train_picklePath = "../data/"+placeNum+"/"+placeNum+"_mpframe6_train.p"
 # crawler.crawling(str(781), str(786))
 
 
@@ -59,62 +65,100 @@ df = pd.read_pickle(rawdata_picklePath) # 크롤링한 결과 dataframe
 # print('Basic statistical features has been calculated')
 # print('Revised dataframe with basic statistical features is saved in %s' % statistical_picklePath)
 
+# def crossvalidation():
+
+
+
+
+
+
 def check(mpframe3):
 
 
-	mpframe3['revisit_intention'] = mpframe3['revisit_intention'].astype(int)
+	mpframe3.loc[:, 'revisit_intention'] = mpframe3['revisit_intention'].astype(int)
 	mask = mpframe3['traj'].str.len() > 0   # Trajectory length threshold
 	mpframe3 = mpframe3.loc[mask]
 
 	result1 = []
-	result2 = []
 	result3 = []
 
-	for i in range(10):
 
-		print('initial shape of the data frame: ', mpframe3.shape)
-		mpframe4 = preprocessing.label_balancing(mpframe3, 90, 10)  # arg[1]: revisit interval(90days), # arg[2]: ignore customers if they visit more than n times(10 times)
-		print('Label balancing has been done: ', mpframe4.shape)
-		mpframe5 = featuregenerator.add_indoor_temporal_movement_features(mpframe4)
-		print('Indoor temporal movement features has been added: ', mpframe5.shape)
-		mpframe6 = sequencefeaturegenerator.add_frequent_sequence_features(mpframe4, 0.01, 0.02, True) 
+	# for i in range(10):
+
+
+	print('initial shape of the data frame: ', mpframe3.shape)
+	mpframe4 = preprocessing.label_balancing(mpframe3, 90, 10)  # arg[1]: revisit interval(90days), # arg[2]: ignore customers if they visit more than n times(10 times)
+	print('Label balancing has been done: ', mpframe4.shape)
+
+	kf = StratifiedKFold(n_splits=10)
+	for train_index, test_index in kf.split(mpframe4, mpframe4['revisit_intention']):
+		mpframe4_train = mpframe4.ix[train_index]
+		mpframe4_test = mpframe4.ix[test_index]
+
+
+		# mpframe5_train = featuregenerator.add_indoor_temporal_movement_features(mpframe4_train)
+		# print('Indoor temporal movement features has been added : ', mpframe5.shape)
+		mpframe6_train, seqE = sequencefeaturegenerator.add_frequent_sequence_features(mpframe4_train, 0.01, 0.02, True, False, []) 
+		mpframe6_test, seqE_deprecated = sequencefeaturegenerator.add_frequent_sequence_features(mpframe4_test, 0.01, 0.02, True, True, seqE) 
+
+		mpframe6_train.to_pickle(mpframe6_train_picklePath)
 		### arguments(dataframe, nfeatures, Temporal, out/in Cond, areaCond, 0secondsCond )
-		print('Frequent sequence features has been added: ', mpframe6.shape)	
+		print('Frequent sequence features has been added: ', mpframe6_train.shape)	
+		print('Frequent sequence features has been added: ', mpframe6_test.shape)
 
-		df_learning1 = preprocessing.finalprocessing(mpframe4)
-		df_learning2 = preprocessing.finalprocessing(mpframe5)
-		df_learning3 = preprocessing.finalprocessing(mpframe6)
+		df_learning1_train = preprocessing.finalprocessing(mpframe4_train)
+		df_learning1_test = preprocessing.finalprocessing(mpframe4_test)
+		df_learning3_train = preprocessing.finalprocessing(mpframe6_train)
+		df_learning3_test = preprocessing.finalprocessing(mpframe6_test)
 
-		
-		data = np.asarray(df_learning1)
-		data[data == inf] = 0
-		X, y = data[:, 11:-1], data[:, -1].astype(int)
-		# print('Number of features:', X.shape[1])
-		cvresults = predict.basicDecisionTree(X, y)
-		# print("Result 1: ", np.mean(cvresults))
-		result1.append(np.mean(cvresults))
+		print(df_learning1_train.shape)
+		print(df_learning1_test.shape)
+		print(df_learning3_train.shape)
+		print(df_learning3_test.shape)
+
+		train = np.asarray(df_learning1_train)
+		train[train == inf] = 0
+		X_train, y_train = train[:, 11:-1], train[:, -1].astype(int)
+		print('Number of features:', X_train.shape)
+
+		test = np.asarray(df_learning1_test)
+		test[test == inf] = 0
+		X_test, y_test = test[:, 11:-1], test[:, -1].astype(int)
+		print('Number of features:', X_test.shape)
+
+		clf = DecisionTreeClassifier(max_depth=5)
+		clf = clf.fit(X_train, y_train)
+		y_pred = clf.predict(X_test)
+		prediction_accuracy = accuracy_score(y_test, y_pred)
+		result1.append(prediction_accuracy)
+		# cvresults = predict.basicDecisionTree(X, y)
+		print("Result 1: ", prediction_accuracy)
+		# result1.append(np.mean(cvresults))
 
 
-		data = np.asarray(df_learning2)
-		data[data == inf] = 0
-		X, y = data[:, 11:-1], data[:, -1].astype(int)
-		# print('Number of features:', X.shape[1])
-		cvresults = predict.basicDecisionTree(X, y)
-		# print("Result 2: ", np.mean(cvresults))
-		result2.append(np.mean(cvresults))
 
 
-		data = np.asarray(df_learning3)
-		data[data == inf] = 0
-		X, y = data[:, 11:-1], data[:, -1].astype(int)
-		# print('Number of features:', X.shape[1])
-		cvresults = predict.basicDecisionTree(X, y)
-		# print("Result 3: ", np.mean(cvresults))
-		result3.append(np.mean(cvresults))
+		train = np.asarray(df_learning3_train)
+		train[train == inf] = 0
+		X_train, y_train = train[:, 11:-1], train[:, -1].astype(int)
+		print('Number of features(with seqmining):', X_train.shape)
+
+		test = np.asarray(df_learning3_test)
+		test[test == inf] = 0
+		X_test, y_test = test[:, 11:-1], test[:, -1].astype(int)
+		print('Number of features(with seqmining):', X_test.shape)
+
+		clf = DecisionTreeClassifier(max_depth=5)
+		clf = clf.fit(X_train, y_train)
+		y_pred = clf.predict(X_test)
+		prediction_accuracy = accuracy_score(y_test, y_pred)
+		result3.append(prediction_accuracy)
+		# cvresults = predict.basicDecisionTree(X, y)
+		print("Result 3: ", prediction_accuracy)
+		# result1.append(np.mean(cvresults))
 
 
 	print("Average results for exp 1: ", np.mean(result1))
-	print("Average results for exp 2: ", np.mean(result2))
 	print("Average results for exp 3: ", np.mean(result3))
 	print("-------------")
 
@@ -124,8 +168,20 @@ def check(mpframe3):
 
 mpframe3 = pd.read_pickle(statistical_picklePath)
 check(mpframe3)
-mpframe3 = pd.read_pickle(statistical_picklePath_beforetrajpreprocess)
-check(mpframe3)
+
+
+# mpframe3 = pd.read_pickle(statistical_picklePath)
+# mpframe3 = CompanionTrajectory.companionFinder(mpframe3, 3)
+# del mpframe3['companion']
+# check(mpframe3)
+
+
+
+
+
+
+# mpframe3 = pd.read_pickle(statistical_picklePath_beforetrajpreprocess)
+# check(mpframe3)
 
 
 

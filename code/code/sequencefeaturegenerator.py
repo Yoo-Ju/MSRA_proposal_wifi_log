@@ -16,7 +16,10 @@ from scipy.special import entr
 from collections import defaultdict
 import featuregenerator
 import preprocessing
-
+import numsubsequence
+import useSPMF
+import subprocess
+import itertools
 
 
 def is_subseq(x, y):
@@ -177,6 +180,7 @@ def generate_sortE(df, supportRatio):
 
 
 def generate_seqE(sortE, numFeatures):
+	numFeatures = min(len(sortE), numFeatures)
 	seqE = []
 	for item in sortE[:numFeatures]:
 	    seqE.append(item[0])
@@ -197,29 +201,52 @@ def relatedfeatures(traj, seqE):
 def generateIGFeatureColumns(df, seqE):
     sss = 2001
     for seq in seqE:
-        df[sss] = 0
+        df.loc[:, sss] = 0
         sss += 1
     for row in df.iterrows():
         for seq_ig in row[1]['seq_ig_ft']:
-            df.set_value(row[0], seq_ig, 1) 
+        	# val = 1
+        	val = numsubsequence.num_subsequences5(row[1]['traj'], seqE[seq_ig - 2001])
+        	df.set_value(row[0], seq_ig, val)
+
 
 @timing.timing
-def add_frequent_sequence_features(df, supportRatio, featureRatio, temporal):
+def add_frequent_sequence_features(df, supportRatio, featureRatio, temporal, test, origin_seqE):
+	newdf = df.copy()
 	if temporal == True:
-		print('Generating feature: By considering dwell_time of each area')
+		# print('Generating feature: By considering dwell_time of each area')
 		area = preprocessing.getuniqueareas(df.traj)
 		# print(area)
-		df['traj'] = df.apply(lambda x: featuregenerator.add_temporal_sign(x, area), axis=1)
-	else:
-		print('Generating feature: Not considering dwell_time of each area')
+		newdf.loc[:, 'traj'] = df.apply(lambda x: featuregenerator.add_temporal_sign(x, area), axis=1)
+	# else:
+		# print('Generating feature: Without considering dwell_time of each area')
 
-	sortE = generate_sortE(df, supportRatio)
-	print(sortE[:30])
-	numFeatures = int(round(df.shape[0]*featureRatio))
-	seqE = generate_seqE(sortE, numFeatures)
-	newdf = df
-	newdf['seq_ig_ft'] = df.apply(lambda x: relatedfeatures(x['traj'], seqE), axis=1)
+	if test == True:
+		seqE = origin_seqE
+	else:
+		print('Case 1: Use bartdag\'s seqmining package with information gain')
+		sortE = generate_sortE(newdf, supportRatio)
+		numFeatures = int(round(newdf.shape[0]*featureRatio))
+		seqE = generate_seqE(sortE, numFeatures)
+		
+		print('sortE length: ',len(sortE))
+		print('seqE length: ',len(seqE))
+
+		## Case 2 (use SPMF - can be used SPMF-generated subsequences as features)
+		# areadict = useSPMF.encryptAreaSPMFconvertible(df.traj)
+		# f = open('spmftestsample.txt', 'w')
+		# useSPMF.toSPMFconverter(df.traj, areadict, f)
+		# subprocess.check_output(['java', '-jar', 'spmf.jar', 'run', 'VMSP', 'spmftestsample.txt', 'spmftestsampleoutput2.txt', '2%'])
+		# traj_support = useSPMF.readSPMFresult('spmftestsampleoutput2.txt', areadict)
+		# seqE = [item[0] for item in traj_support]
+	
+
+	# print(seqE[:30])
+	
+	newdf.loc[:, 'seq_ig_ft'] = newdf.apply(lambda x: relatedfeatures(x['traj'], seqE), axis=1)
 	generateIGFeatureColumns(newdf, seqE)
 	del newdf['seq_ig_ft']
-	return newdf
+	
+
+	return newdf, seqE
 
