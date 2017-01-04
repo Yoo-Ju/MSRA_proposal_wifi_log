@@ -18,7 +18,9 @@ import timing2
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import normalize
 import CompanionTrajectory
+
 pd.options.mode.chained_assignment = None
 
 
@@ -101,7 +103,7 @@ def check(mpframe3):
 		mpframe6_train, seqE = sequencefeaturegenerator.add_frequent_sequence_features(mpframe4_train, 0.01, 0.02, True, False, []) 
 		mpframe6_test, seqE_deprecated = sequencefeaturegenerator.add_frequent_sequence_features(mpframe4_test, 0.01, 0.02, True, True, seqE) 
 
-		mpframe6_train.to_pickle(mpframe6_train_picklePath)
+		# mpframe6_train.to_pickle(mpframe6_train_picklePath)
 		### arguments(dataframe, nfeatures, Temporal, out/in Cond, areaCond, 0secondsCond )
 		print('Frequent sequence features has been added: ', mpframe6_train.shape)	
 		print('Frequent sequence features has been added: ', mpframe6_test.shape)
@@ -119,11 +121,13 @@ def check(mpframe3):
 		train = np.asarray(df_learning1_train)
 		train[train == inf] = 0
 		X_train, y_train = train[:, 11:-1], train[:, -1].astype(int)
+		# X_train = normalize(X_train, norm='l2', axis=1)
 		print('Number of features:', X_train.shape)
 
 		test = np.asarray(df_learning1_test)
 		test[test == inf] = 0
 		X_test, y_test = test[:, 11:-1], test[:, -1].astype(int)
+		# X_test = normalize(X_test, norm='l2', axis=1)
 		print('Number of features:', X_test.shape)
 
 		clf = DecisionTreeClassifier(max_depth=5)
@@ -141,11 +145,13 @@ def check(mpframe3):
 		train = np.asarray(df_learning3_train)
 		train[train == inf] = 0
 		X_train, y_train = train[:, 11:-1], train[:, -1].astype(int)
+		# X_train = normalize(X_train, norm='l2', axis=0)
 		print('Number of features(with seqmining):', X_train.shape)
 
 		test = np.asarray(df_learning3_test)
 		test[test == inf] = 0
 		X_test, y_test = test[:, 11:-1], test[:, -1].astype(int)
+		# X_test = normalize(X_test, norm='l2', axis=0)
 		print('Number of features(with seqmining):', X_test.shape)
 
 		clf = DecisionTreeClassifier(max_depth=5)

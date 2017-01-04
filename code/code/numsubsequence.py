@@ -100,7 +100,7 @@ if __name__ == '__main__':
     
     start_time = time.time()
     sub = ['out', 'in'] 
-    seq = ['out', 'out', 'in', '1f']
+    seq = ['out', 'out', 'out', 'in', 'in', '1f']
     a = num_subsequences5(seq, sub)
     print(a)
 

@@ -312,12 +312,12 @@ def label_balancing(trajs_combined, revisit_interval, frequent_limit):
 
 
 def finalprocessing(mpframe4):
-	cols = mpframe4.columns.tolist()
-	newcols = cols[:12] + cols[13:] + cols[12:13]
-	df_learning = mpframe4[newcols]
-	df_learning = df_learning.fillna(0)
-	df_learning = df_learning.reindex(np.random.permutation(df_learning.index))
-	return df_learning
+    cols = mpframe4.columns.tolist()
+    newcols = cols[:12] + cols[13:] + cols[12:13]
+    df_learning = mpframe4[newcols]
+    df_learning = df_learning.fillna(0)
+    df_learning = df_learning.reindex(np.random.permutation(df_learning.index))
+    return df_learning
 
 
 def getuniqueareas(trajseries):
