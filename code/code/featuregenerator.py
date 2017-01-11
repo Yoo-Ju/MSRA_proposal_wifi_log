@@ -182,13 +182,16 @@ Indoor temporal movement features
 def puttogether(a, b):
     if b == 0:
         c = 'zero'
-    elif b < 60:
+    elif b < 10:
+        c = 'veryshort'
+    elif b < 100:
         c = 'short'
-    elif b < 600:
+    elif b < 1000:
         c = 'medium'
     else:
         c = 'long'
     return '-'.join([a,c])
+    
 
 def add_temporal_sign(x, area):  # Make features like 1f-medium, or 1f-inner-short
     idcs = [i for i, y in enumerate(x['traj']) if y in area]

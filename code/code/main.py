@@ -10,6 +10,7 @@ import featuregenerator
 import preprocessing
 import predict
 import sequencefeaturegenerator
+import sequencefeaturegenerator_taslike
 import pickle
 import pandas as pd
 import numpy as np
@@ -100,8 +101,8 @@ def check(mpframe3):
 
 		# mpframe5_train = featuregenerator.add_indoor_temporal_movement_features(mpframe4_train)
 		# print('Indoor temporal movement features has been added : ', mpframe5.shape)
-		mpframe6_train, seqE = sequencefeaturegenerator.add_frequent_sequence_features(mpframe4_train, 0.01, 0.02, True, False, []) 
-		mpframe6_test, seqE_deprecated = sequencefeaturegenerator.add_frequent_sequence_features(mpframe4_test, 0.01, 0.02, True, True, seqE) 
+		mpframe6_train, seqE = sequencefeaturegenerator_taslike.add_frequent_sequence_features(mpframe4_train, 0.01, 0.02, True, False, []) 
+		mpframe6_test, seqE_deprecated = sequencefeaturegenerator_taslike.add_frequent_sequence_features(mpframe4_test, 0.01, 0.02, True, True, seqE) 
 
 		# mpframe6_train.to_pickle(mpframe6_train_picklePath)
 		### arguments(dataframe, nfeatures, Temporal, out/in Cond, areaCond, 0secondsCond )

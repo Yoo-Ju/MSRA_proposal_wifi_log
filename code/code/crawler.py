@@ -28,10 +28,10 @@ def crawling(*args):  ### arguments example: 781, 786
         ts = obj['since']
 
 
-        if not os.path.exists('../data/'+placeNum):
-            os.makedirs('../data/'+placeNum)
+        if not os.path.exists('../data2/'+placeNum):
+            os.makedirs('../data2/'+placeNum)
 
-        with open('../data/'+placeNum+'/'+placeNum+'_'+ts+'.json', 'w') as f:
+        with open('../data2/'+placeNum+'/'+placeNum+'_'+ts+'.json', 'w') as f:
             json.dump(obj, f)
         f.close()
 
@@ -41,7 +41,7 @@ def crawling(*args):  ### arguments example: 781, 786
             response = urllib.request.urlopen(url)
             str_response = response.read().decode('utf-8')
             obj2 = json.loads(str_response)
-            filename = '../data/'+placeNum+'/'+placeNum+'_'+ts+'.json'
+            filename = '../data2/'+placeNum+'/'+placeNum+'_'+ts+'.json'
             with open(filename, 'w') as f:
                 json.dump(obj2, f)
             f.close()
@@ -53,7 +53,7 @@ def crawling(*args):  ### arguments example: 781, 786
 
 
         contents = []
-        files = glob.glob('../data/'+placeNum+'/*.json')
+        files = glob.glob('../data2/'+placeNum+'/*.json')
         for filename in files:
             with open(filename, 'r') as f:
                 d = json.load(f)
@@ -64,10 +64,14 @@ def crawling(*args):  ### arguments example: 781, 786
         device_ids = df['device_id'].unique()
         
 
-        df.to_pickle('../data/'+placeNum+'/'+placeNum+'.p')
+        df.to_pickle('../data2/'+placeNum+'/'+placeNum+'.p')
         print('Data for shop number %s has been crawled' % placeNum)
         print ('The number of detected unique device ids is %s' % len(device_ids))
         print ('The number of total logs is ', df.shape)
-        print('Saved in %s is done' % '../data/'+placeNum+'/'+placeNum+'.p')
+        print('Saved in %s is done' % '../data2/'+placeNum+'/'+placeNum+'.p')
+
+
+if __name__ == '__main__':
+    crawling(sys.argv[1], sys.argv[2])
 
 
