@@ -144,7 +144,7 @@ if __name__ == '__main__':
 	statistical_picklePath = "../data/"+placeNum+"/"+placeNum+"_mpframe3.p"
 	df = pd.read_pickle(statistical_picklePath)
 
-	df = preprocessing.label_balancing(df, 90, 10)
+	df = preprocessing.remove_frequent_visitors(df, 90, 10)
 	
 	df2 = df[['traj', 'ts', 'dwell_time', 'time_start', 'ts_end', 'revisit_intention']]  #  'time_end',
 	

@@ -161,15 +161,18 @@ def statistical_feature_generator(lst, areaType):
 
 
 def add_statistical_features(df, df2):
-	areaType = sorted(df.area.unique())
-	features = df2.apply(lambda x: statistical_feature_generator(x, areaType), axis=1) 
-	df3 = pd.DataFrame(index = features.index)
+    print('before', df2.shape)
+    areaType = sorted(df.area.unique())
+    features = df2.apply(lambda x: statistical_feature_generator(x, areaType), axis=1) 
 
-	for i in range(len(features[1])):
-		df3[i] = features.apply(lambda x: x[i])
+    # df3 = pd.DataFrame(index = features.index)
+    # print(df3.head(3))
 
-	df4 = pd.concat([df2, df3], axis=1, join='inner')
-	return df4
+    for i in range(len(features.iloc[0])):
+        df2[i] = features.apply(lambda x: x[i])
+
+    # df4 = pd.concat([df2, df3], axis=1, join='inner')
+    return df2
 
 
 

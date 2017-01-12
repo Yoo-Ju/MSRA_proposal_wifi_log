@@ -132,7 +132,7 @@ def generate_sortE(df, supportRatio):
     ### Minimum subsequence length == 1  &  sort by support (TODO: parameter)
     freq_seqs_sample = []
     for x in freq_seqs:
-        if (len(x[0]) >= 1):
+        if (len(x[0]) >= 4):
             freq_seqs_sample.append(x)
     freq_seqs_sample = sorted(freq_seqs_sample, key=lambda tup: tup[1], reverse=True)   
 
@@ -339,7 +339,7 @@ if __name__ == '__main__':
 	print("--------------TEST sequencefeaturegenerator_taslike.py-------------")
 	df = pd.read_pickle("../data/786/786_mpframe3.p")
 	print(df.shape)
-	df2 = preprocessing.label_balancing(df, 90, 10)
+	df2 = preprocessing.remove_frequent_visitors(df, 90, 10)
 	print(df2.shape)
 	finaldf, seqE= add_frequent_sequence_features(df2, 0.02, 0.02, True, False, [])
 	print(finaldf.shape)

@@ -282,7 +282,7 @@ def add_visitcount(mpframe2):
 
 
 @timing.timing
-def label_balancing(trajs_combined, revisit_interval, frequent_limit):
+def remove_frequent_visitors(trajs_combined, revisit_interval, frequent_limit):
 	### 최근 세달 이내 revisit intention이 없는 moving pattern 제거 
 	trajs_combined = trajs_combined.set_index('date_device_id')
 
@@ -308,7 +308,7 @@ def label_balancing(trajs_combined, revisit_interval, frequent_limit):
 
 # placeNum = str(786)
 # reindexed_picklePath = "../data/"+placeNum+"/"+placeNum+"_mpframe_160923.p"
-# label_balancing(trajs_combined, 90, 10)
+# remove_frequent_visitors(trajs_combined, 90, 10)
 
 
 def finalprocessing(mpframe4):
