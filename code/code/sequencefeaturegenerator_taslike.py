@@ -298,9 +298,7 @@ def add_frequent_sequence_features(df, supportRatio, featureRatio, temporal, tes
 		numFeatures = int(round(newdf.shape[0]*featureRatio))
 		seqE = generate_seqE(sortE, numFeatures)
 		print()
-		print('sortE length: ', len(sortE))
-		for item in sortE:
-			print(item)
+		print('Top-10 sortE: ', sortE[:10])
 		print()
 		print('seqE length: ',len(seqE))
 

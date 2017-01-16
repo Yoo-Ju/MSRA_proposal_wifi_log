@@ -48,7 +48,7 @@ def reindex_by_moving_pattern(df, mintime):
 	### erase other useless trajectories having 'in' shorter than 100 seconds
 	dfin = df2[df2['area'] == 'in']
 	time = dfin.groupby(['date_device_id'])['dwell_time'].sum()
-	time2 = time[time > mintime]
+	time2 = time[time >= mintime]
 	print('Ratio of trajectory staying \'in\' longer than 0 seconds: ', len(time2)/len(time))
 	df3 = df2[df2.date_device_id.isin(time2.index.tolist())]
 

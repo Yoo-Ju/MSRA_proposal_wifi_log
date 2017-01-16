@@ -282,12 +282,12 @@ def add_revisit_intention(mpframe2, revisit_interval_thres):
 
 
 @timing.timing
-def remove_frequent_visitors(trajs_excludelast3months, revisit_interval, frequent_limit):
+def remove_frequent_visitors(trajs_excludelast3months, frequent_limit):
 	## trajs_excludelast3months = trajs_excludelast3months.set_index('date_device_id')
 
     ### 10번 이상 온 사람들은 제거.
 	visitcounts = trajs_excludelast3months.groupby(['device_id'])['new_visit_count'].max()
-	freqvisitors = visitcounts.loc[visitcounts > frequent_limit ].keys()
+	freqvisitors = visitcounts.loc[visitcounts >= frequent_limit ].keys()
 	trajs_freqremoved = trajs_excludelast3months.loc[-trajs_excludelast3months.device_id.isin(freqvisitors.tolist())]
     
 	### Revisit intention 비율을 50대 50으로 맞춤 (sampling)

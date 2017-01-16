@@ -229,7 +229,9 @@ def add_frequent_sequence_features(df, supportRatio, featureRatio, temporal, tes
 		numFeatures = int(round(newdf.shape[0]*featureRatio))
 		seqE = generate_seqE(sortE, numFeatures)
 		
-		print('sortE length: ', len(sortE))
+		print()
+		print('Top-10 sortE: ', sortE[:10])
+		print()
 		print('seqE length: ',len(seqE))
 
 		## Case 2 (use SPMF - can be used SPMF-generated subsequences as features)
